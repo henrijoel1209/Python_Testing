@@ -56,12 +56,14 @@ def purchasePlaces():
     if competition and club:
         if placesRequired <= 0:
             flash("Invalid number of places requested.")
+            return redirect(url_for('book', competition=competition['name'], club=club['name']))
         elif placesRequired > int(competition['numberOfPlaces']):
             flash(f"Only {competition['numberOfPlaces']} places available.")
+            return redirect(url_for('book', competition=competition['name'], club=club['name']))
         else:
             competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
-            flash('Great-booking complete!')
-        return render_template('welcome.html', club=club, competitions=competitions)
+            flash('Great, booking complete!')
+            return render_template('welcome.html', club=club, competitions=competitions)
     else:
         flash("Invalid club or competition.")
         return redirect(url_for('index'))

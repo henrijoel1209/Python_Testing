@@ -57,6 +57,9 @@ def purchasePlaces():
         if placesRequired <= 0:
             flash("Invalid number of places requested.")
             return redirect(url_for('book', competition=competition['name'], club=club['name']))
+        elif placesRequired > 12:
+            flash("You cannot book more than 12 places.")
+            return redirect(url_for('book', competition=competition['name'], club=club['name']))
         elif placesRequired > int(competition['numberOfPlaces']):
             flash(f"Only {competition['numberOfPlaces']} places available.")
             return redirect(url_for('book', competition=competition['name'], club=club['name']))

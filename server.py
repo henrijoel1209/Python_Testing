@@ -63,8 +63,12 @@ def purchasePlaces():
         elif placesRequired > int(competition['numberOfPlaces']):
             flash(f"Only {competition['numberOfPlaces']} places available.")
             return redirect(url_for('book', competition=competition['name'], club=club['name']))
+        elif placesRequired > int(club['points']):
+            flash(f"You only have {club['points']} points available.")
+            return redirect(url_for('book', competition=competition['name'], club=club['name']))
         else:
             competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
+            club['points'] = int(club['points']) - placesRequired  # Deduct points from the club
             flash('Great, booking complete!')
             return render_template('welcome.html', club=club, competitions=competitions)
     else:

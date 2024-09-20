@@ -30,7 +30,7 @@ def index():
 def showSummary():
     club = next((club for club in clubs if club['email'] == request.form['email']), None)
     if club:
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template('welcome.html', club=club, competitions=competitions, clubs=clubs)
     else:
         flash("Email not found, please try again.")
         return redirect(url_for('index'))
@@ -70,13 +70,10 @@ def purchasePlaces():
             competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
             club['points'] = int(club['points']) - placesRequired  # Deduct points from the club
             flash('Great, booking complete!')
-            return render_template('welcome.html', club=club, competitions=competitions)
+            return render_template('welcome.html', club=club, competitions=competitions, clubs=clubs)
     else:
         flash("Invalid club or competition.")
         return redirect(url_for('index'))
-
-
-# TODO: Add route for points display
 
 
 @app.route('/logout')

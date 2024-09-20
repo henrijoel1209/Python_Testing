@@ -1,7 +1,8 @@
 import json
+import time
 from flask import Flask, render_template, request, redirect, flash, url_for
 
-
+# Load clubs and competitions once, and store in memory
 def loadClubs():
     with open('clubs.json') as c:
         listOfClubs = json.load(c)['clubs']
@@ -17,6 +18,7 @@ def loadCompetitions():
 app = Flask(__name__)
 app.secret_key = 'something_special'
 
+# Load clubs and competitions into memory to avoid repeated file reads
 competitions = loadCompetitions()
 clubs = loadClubs()
 
@@ -26,10 +28,16 @@ def index():
     return render_template('index.html')
 
 
+# Measure the time taken to retrieve competitions list
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
+    start_time = time.time()  # Start time for performance measurement
+    
     club = next((club for club in clubs if club['email'] == request.form['email']), None)
     if club:
+        elapsed_time = time.time() - start_time  # Calculate elapsed time
+        if elapsed_time > 5:  # Check if the operation exceeds 5 seconds
+            flash(f"Loading competitions took too long ({elapsed_time:.2f} seconds).")
         return render_template('welcome.html', club=club, competitions=competitions, clubs=clubs)
     else:
         flash("Email not found, please try again.")
@@ -47,8 +55,11 @@ def book(competition, club):
         return redirect(url_for('showSummary'))
 
 
+# Measure the time taken to update points and ensure it's under 2 seconds
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
+    start_time = time.time()  # Start time for performance measurement
+    
     competition = next((c for c in competitions if c['name'] == request.form['competition']), None)
     club = next((c for c in clubs if c['name'] == request.form['club']), None)
     placesRequired = int(request.form['places'])
@@ -69,6 +80,11 @@ def purchasePlaces():
         else:
             competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
             club['points'] = int(club['points']) - placesRequired  # Deduct points from the club
+            
+            elapsed_time = time.time() - start_time  # Calculate elapsed time
+            if elapsed_time > 2:  # Check if the operation exceeds 2 seconds
+                flash(f"Updating points took too long ({elapsed_time:.2f} seconds).")
+            
             flash('Great, booking complete!')
             return render_template('welcome.html', club=club, competitions=competitions, clubs=clubs)
     else:
@@ -80,7 +96,6 @@ def purchasePlaces():
 @app.route('/public_points.html')
 def publicPoints():
     return render_template('public_points.html', clubs=clubs)
-
 
 @app.route('/logout')
 def logout():

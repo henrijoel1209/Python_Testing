@@ -1,5 +1,4 @@
 import json
-import time
 from flask import Flask, render_template, request, redirect, flash, url_for
 
 # Load clubs and competitions once, and store in memory
@@ -22,22 +21,19 @@ app.secret_key = 'something_special'
 competitions = loadCompetitions()
 clubs = loadClubs()
 
+# Track the number of places each club has already reserved for a competition
+club_reservations = {club['name']: {} for club in clubs}
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-# Measure the time taken to retrieve competitions list
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
-    start_time = time.time()  # Start time for performance measurement
-    
     club = next((club for club in clubs if club['email'] == request.form['email']), None)
     if club:
-        elapsed_time = time.time() - start_time  # Calculate elapsed time
-        if elapsed_time > 5:  # Check if the operation exceeds 5 seconds
-            flash(f"Loading competitions took too long ({elapsed_time:.2f} seconds).")
         return render_template('welcome.html', club=club, competitions=competitions, clubs=clubs)
     else:
         flash("Email not found, please try again.")
@@ -55,16 +51,22 @@ def book(competition, club):
         return redirect(url_for('showSummary'))
 
 
-# Measure the time taken to update points and ensure it's under 2 seconds
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    start_time = time.time()  # Start time for performance measurement
-    
     competition = next((c for c in competitions if c['name'] == request.form['competition']), None)
     club = next((c for c in clubs if c['name'] == request.form['club']), None)
     placesRequired = int(request.form['places'])
 
     if competition and club:
+        # Get the number of places the club has already reserved for this competition
+        club_reserved_places = club_reservations[club['name']].get(competition['name'], 0)
+        
+        # Check if the club is trying to reserve more than 12 places in total
+        if club_reserved_places + placesRequired > 12:
+            flash(f"You cannot reserve more than 12 places for this competition. "
+                  f"You have already reserved {club_reserved_places} places.")
+            return redirect(url_for('book', competition=competition['name'], club=club['name']))
+        
         if placesRequired <= 0:
             flash("Invalid number of places requested.")
             return redirect(url_for('book', competition=competition['name'], club=club['name']))
@@ -81,9 +83,8 @@ def purchasePlaces():
             competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
             club['points'] = int(club['points']) - placesRequired  # Deduct points from the club
             
-            elapsed_time = time.time() - start_time  # Calculate elapsed time
-            if elapsed_time > 2:  # Check if the operation exceeds 2 seconds
-                flash(f"Updating points took too long ({elapsed_time:.2f} seconds).")
+            # Update the number of places the club has reserved for this competition
+            club_reservations[club['name']][competition['name']] = club_reserved_places + placesRequired
             
             flash('Great, booking complete!')
             return render_template('welcome.html', club=club, competitions=competitions, clubs=clubs)

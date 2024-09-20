@@ -76,6 +76,12 @@ def purchasePlaces():
         return redirect(url_for('index'))
 
 
+# Route for public view of clubs' points
+@app.route('/public_points.html')
+def publicPoints():
+    return render_template('public_points.html', clubs=clubs)
+
+
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))

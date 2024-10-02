@@ -54,12 +54,10 @@ def book(competition, club):
     foundClub = next((c for c in clubs if c['name'] == club), None)
     foundCompetition = next((c for c in competitions if c['name'] == competition), None)
     
-    # Check if club and competition exist
     if not foundClub or not foundCompetition:
         flash("Invalid club or competition.")
         return redirect(url_for('showSummary'))
     
-    # Check if the competition date is in the future
     competition_date = datetime.strptime(foundCompetition['date'], '%Y-%m-%d %H:%M:%S')
     if competition_date < min_allowed_date:
         flash("You cannot book for past competitions.")
@@ -72,14 +70,17 @@ def book(competition, club):
 def purchasePlaces():
     competition = next((c for c in competitions if c['name'] == request.form['competition']), None)
     club = next((c for c in clubs if c['name'] == request.form['club']), None)
-    placesRequired = int(request.form['places'])
     
-    # Check if club and competition exist
     if not competition or not club:
         flash("Invalid club or competition.")
         return redirect(url_for('showSummary'))
-    
-    # Check if the competition date is in the future
+
+    try:
+        placesRequired = int(request.form['places'])
+    except ValueError:
+        flash("Invalid input for places. Please enter a valid number.")
+        return redirect(url_for('book', competition=competition['name'], club=club['name']))
+
     competition_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
     if competition_date < min_allowed_date:
         flash("You cannot book for past competitions.")
@@ -87,7 +88,6 @@ def purchasePlaces():
 
     club_reserved_places = club_reservations[club['name']].get(competition['name'], 0)
     
-    # Check if the club is trying to reserve more than 12 places in total
     if club_reserved_places + placesRequired > 12:
         flash(f"You cannot reserve more than 12 places for this competition. "
               f"You have already reserved {club_reserved_places} places.")
@@ -109,16 +109,16 @@ def purchasePlaces():
         competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
         club['points'] = int(club['points']) - placesRequired  # Deduct points from the club
         
-        # Update the number of places the club has reserved for this competition
         club_reservations[club['name']][competition['name']] = club_reserved_places + placesRequired
         
         flash('Great, booking complete!')
         return render_template('welcome.html', club=club, competitions=competitions, clubs=clubs)
 
-# Route for public view of clubs' points
+
 @app.route('/public_points.html')
 def publicPoints():
     return render_template('public_points.html', clubs=clubs)
+
 
 @app.route('/logout')
 def logout():

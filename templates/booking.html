@@ -1,12 +1,12 @@
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking for {{competition['name']}} || GUDLFT</title>
+    <title>Réservation pour {{competition['name']}} || GUDLFT</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f9f9f9;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -16,7 +16,7 @@
         }
 
         h2 {
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -24,10 +24,10 @@
         form {
             background-color: white;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
         }
 
         label {
@@ -38,7 +38,7 @@
 
         input[type="number"] {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -47,9 +47,9 @@
 
         button {
             width: 100%;
-            background-color: #4CAF50;
+            background-color: #3498db;
             color: white;
-            padding: 10px;
+            padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -57,7 +57,7 @@
         }
 
         button:hover {
-            background-color: #45a049;
+            background-color: #2980b9;
         }
 
         .available-places {
@@ -66,18 +66,49 @@
             font-size: 18px;
             color: #555;
         }
+
+        /* Style des messages d'erreur */
+        .error-message {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffefef;
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            form {
+                width: 90%;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div>
         <h2>{{competition['name']}}</h2>
         <div class="available-places">
-            Places available: {{competition['numberOfPlaces']}}
+            Places disponibles : {{competition['numberOfPlaces']}}
         </div>
+
+        {% if message %}
+        <div class="error-message">
+            {{ message }}
+        </div>
+        {% endif %}
+
         <form action="/purchasePlaces" method="post">
             <input type="hidden" name="club" value="{{club['name']}}">
             <input type="hidden" name="competition" value="{{competition['name']}}">
-            <label for="places">How many places?</label>
+            <label for="places">Combien de places souhaitez-vous réserver ?</label>
             <input type="number" name="places" id="places" required min="1">
             <button type="submit">Acheter</button>
         </form>
